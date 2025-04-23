@@ -38,15 +38,25 @@ app.get('/', (req, res) => {
   res.send('WhatsApp Bot is running.');
 });
 
-// Show QR after ensuring it is generated
+// Show QR with delay to ensure it has time to generate
 app.get('/qr', (req, res) => {
-  if (qrGenerated && qrData) {
+  if (!qrGenerated) {
+    // Wait for 10 seconds to allow QR to be generated
+    setTimeout(() => {
+      if (qrGenerated && qrData) {
+        res.send(`
+          <h2>Scan this QR Code with your WhatsApp</h2>
+          <img src="${qrData}" />
+        `);
+      } else {
+        res.send('QR not generated yet. Please wait or check logs.');
+      }
+    }, 10000); // wait 10 seconds
+  } else {
     res.send(`
       <h2>Scan this QR Code with your WhatsApp</h2>
       <img src="${qrData}" />
     `);
-  } else {
-    res.send('QR not generated yet. Please wait a few seconds and refresh.');
   }
 });
 
