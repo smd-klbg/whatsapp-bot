@@ -4,15 +4,17 @@ const app = express();
 
 let client = null;
 let qrData = null;
+let qrGenerated = false;
 
-// Initialize WhatsApp session
+// Create WhatsApp session
 venom
   .create(
     'whatsapp-bot',
     (base64Qr, asciiQR, attempts, urlCode) => {
-      console.log('Scan the QR below in terminal:\n');
+      console.log('[whatsapp-bot] QR code is ready. Scan it below:\n');
       console.log(asciiQR);
       qrData = base64Qr;
+      qrGenerated = true;
     },
     (statusSession, session) => {
       console.log(`[whatsapp-bot] Status: ${statusSession}`);
@@ -36,14 +38,15 @@ app.get('/', (req, res) => {
   res.send('WhatsApp Bot is running.');
 });
 
+// Show QR
 app.get('/qr', (req, res) => {
-  if (qrData) {
+  if (qrGenerated && qrData) {
     res.send(`
       <h2>Scan this QR Code with your WhatsApp</h2>
       <img src="${qrData}" />
     `);
   } else {
-    res.send('Client not initialized yet. Please wait or check logs.');
+    res.send('QR not generated yet. Please wait a few seconds and refresh.');
   }
 });
 
