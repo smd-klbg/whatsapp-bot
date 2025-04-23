@@ -3,17 +3,17 @@ const venom = require('venom-bot');
 const app = express();
 
 let client = null;
-let qrData = null;
+let qrData = '';
 let qrGenerated = false;
 
-// Create WhatsApp session
+// Create WhatsApp client
 venom
   .create(
     'whatsapp-bot',
     (base64Qr, asciiQR, attempts, urlCode) => {
       console.log('[whatsapp-bot] QR code is ready. Scan it below:\n');
-      console.log(asciiQR);
-      qrData = base64Qr;
+      console.log(asciiQR); // Visible in Render logs
+      qrData = `data:image/png;base64,${base64Qr}`;
       qrGenerated = true;
     },
     (statusSession, session) => {
@@ -23,43 +23,39 @@ venom
       multidevice: true,
       headless: true,
       useChrome: true,
-      debug: false
+      debug: true,
     }
   )
-  .then((whatsappClient) => {
-    client = whatsappClient;
-    console.log('[whatsapp-bot] Client is ready.');
+  .then((_client) => {
+    client = _client;
+    console.log('[whatsapp-bot] Client initialized.');
   })
   .catch((err) => {
-    console.error('[whatsapp-bot] Initialization failed:', err);
+    console.error('[whatsapp-bot] Error initializing client:', err);
   });
 
+// Express routes
 app.get('/', (req, res) => {
-  res.send('WhatsApp Bot is running.');
+  res.send('WhatsApp chatbot is running.');
 });
 
-// Show QR with delay to ensure it has time to generate
 app.get('/qr', (req, res) => {
-  if (!qrGenerated) {
-    // Wait for 10 seconds to allow QR to be generated
-    setTimeout(() => {
-      if (qrGenerated && qrData) {
-        res.send(`
-          <h2>Scan this QR Code with your WhatsApp</h2>
+  if (qrGenerated && qrData) {
+    const html = `
+      <html>
+        <body>
+          <h2>Scan the QR Code below with WhatsApp:</h2>
           <img src="${qrData}" />
-        `);
-      } else {
-        res.send('QR not generated yet. Please wait or check logs.');
-      }
-    }, 10000); // wait 10 seconds
+        </body>
+      </html>
+    `;
+    res.send(html);
   } else {
-    res.send(`
-      <h2>Scan this QR Code with your WhatsApp</h2>
-      <img src="${qrData}" />
-    `);
+    res.send('QR not generated yet. Please wait a few seconds and refresh.');
   }
 });
 
+// Start server
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`==> Server running on port ${PORT}`);
