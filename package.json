@@ -1,0 +1,12 @@
+{
+  "name": "whatsapp-bot",
+  "version": "1.0.0",
+  "description": "WhatsApp bot with simulated buttons",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "venom-bot": "^4.0.0"
+  }
+}
