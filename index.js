@@ -3,31 +3,47 @@ const express = require('express');
 const app = express();
 const port = process.env.PORT || 10000;
 
+// Start express server
 app.listen(port, '0.0.0.0', () => {
-    console.log(`App listening at http://0.0.0.0:${port}`);
+  console.log(`Server running on http://0.0.0.0:${port}`);
 });
 
-venom.create().then((client) => {
-    console.log('Bot created, waiting for QR Code...');
-    
-    // Handle the QR code generation and log it
-    client.onQrCode((qrCode) => {
-        console.log('QR Code:', qrCode); // This logs the QR code string
-    });
+// Create venom session
+venom
+  .create({
+    session: 'whatsapp-bot',
+  })
+  .then((client) => start(client))
+  .catch((err) => {
+    console.error('Error creating session:', err);
+  });
 
-    // Handle state change events (e.g., connected, disconnected)
-    client.onStateChange((state) => {
-        console.log(`State changed: ${state}`);
-        if (state === 'DISCONNECTED') {
-            console.log('Bot has disconnected. Reconnecting...');
-            // Reconnect logic here if needed
-        }
-    });
+// Bot logic
+function start(client) {
+  client.onMessage((message) => {
+    console.log('Message:', message.body);
 
-    // Handle incoming messages
-    client.onMessage((message) => {
-        console.log("Message received:", message.body);
+    // Handle button responses
+    if (message.body === 'Option 1') {
+      client.sendText(message.from, 'You selected Option 1');
+    } else if (message.body === 'Option 2') {
+      client.sendText(message.from, 'You selected Option 2');
+    } else {
+      // Send interactive buttons
+      client.sendButtons(
+        message.from,
+        'Please choose one of the following options:',
+        [
+          { buttonText: { displayText: 'Option 1' } },
+          { buttonText: { displayText: 'Option 2' } }
+        ],
+        'Click a button below'
+      );
+    }
+  });
 
-        // Send buttons to user
-        if (message.body === '1') {
-            client.sendText(message.from, 'Option 1 selected!');
+  // Handle QR Code logs
+  client.onStateChange((state) => {
+    console.log('State:', state);
+  });
+}
