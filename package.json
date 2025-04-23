@@ -1,15 +1,13 @@
 {
   "name": "whatsapp-bot",
   "version": "1.0.0",
-  "description": "WhatsApp Bot with Venom and Express",
+  "description": "A simple WhatsApp bot using venom-bot",
   "main": "index.js",
-  "dependencies": {
-    "express": "^4.17.1",
-    "venom-bot": "^4.0.0"
-  },
   "scripts": {
     "start": "node index.js"
   },
-  "author": "",
-  "license": "ISC"
+  "dependencies": {
+    "express": "^4.18.2",
+    "venom-bot": "^4.0.0"
+  }
 }
