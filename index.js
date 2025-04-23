@@ -1,4 +1,5 @@
 const venom = require('venom-bot');
+const puppeteer = require('puppeteer-core');
 
 venom
   .create(
@@ -19,16 +20,25 @@ venom
     },
     {
       multidevice: true,  // Enable multi-device support
-      headless: false,  // Disable headless mode for debugging (change back to true after working)
-      useChrome: true,   // Use Chrome browser
-      debug: true,       // Enable debug mode for detailed logs
+      useChrome: true,    // Use Chrome browser
+      headless: false,    // Disable headless mode for debugging
+      debug: true,        // Enable debug mode for detailed logs
       waitForLogin: 60000, // Increased wait time (60 seconds)
+      executablePath: '/usr/bin/chromium-browser', // Specify the path to chromium (Render environment)
+      args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox', 
+        '--headless', 
+        '--disable-gpu', 
+        '--disable-software-rasterizer', 
+        '--remote-debugging-port=9222'
+      ], // Additional arguments for Chromium
     }
   )
   .then((client) => {
     console.log('[whatsapp-bot] Client initialized.');
 
-    // You can also send a message to test if the bot is working
+    // Send a test message to verify everything is working
     client.sendText('your-phone-id', 'Hello from WhatsApp bot!')
       .then((result) => {
         console.log('Message sent successfully:', result);
