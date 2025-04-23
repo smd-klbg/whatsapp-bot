@@ -13,11 +13,13 @@ app.listen(port, '0.0.0.0', () => {
 venom.create().then((client) => {
     client.onMessage((message) => {
         if (message.body === '1') {
-            client.sendText(message.from, 'You selected: 📦 View Products');
+            client.sendText(message.from, 'You selected: 📦 **View Products**. Here is our new collection...');
         } else if (message.body === '2') {
-            client.sendText(message.from, 'You selected: 💬 Talk to Support');
+            client.sendText(message.from, 'You selected: 💬 **Talk to Support**. Please describe your issue, and we will assist you shortly.');
         } else if (message.body === '3') {
-            client.sendText(message.from, 'You selected: 📣 Subscribe to Offers');
+            client.sendText(message.from, 'You selected: 📣 **Subscribe to Offers**. Thank you for subscribing! You will receive exciting offers soon.');
+        } else {
+            client.sendText(message.from, 'I’m sorry, I didn’t understand that. Please choose one of the following options: 1. 📦 View Products, 2. 💬 Talk to Support, 3. 📣 Subscribe to Offers.');
         }
     });
 
