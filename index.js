@@ -38,7 +38,7 @@ app.get('/', (req, res) => {
   res.send('WhatsApp Bot is running.');
 });
 
-// Show QR
+// Show QR after ensuring it is generated
 app.get('/qr', (req, res) => {
   if (qrGenerated && qrData) {
     res.send(`
