@@ -1,49 +1,54 @@
-const venom = require('venom-bot');
 const express = require('express');
+const venom = require('venom-bot');
+
 const app = express();
-const port = process.env.PORT || 10000;
+let client = null;
 
-// Start express server
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server running on http://0.0.0.0:${port}`);
-});
-
-// Create venom session
+// Create the WhatsApp session
 venom
   .create({
-    session: 'whatsapp-bot',
+    session: 'whatsapp-bot', // session name
+    multidevice: true,       // supports multi-device
+    headless: true,          // set to false if you want to see browser
+    useChrome: true,
+    debug: false
   })
-  .then((client) => start(client))
-  .catch((err) => {
-    console.error('Error creating session:', err);
+  .then((whatsappClient) => {
+    client = whatsappClient;
+
+    console.log('[whatsapp-bot] Client initialized');
+
+    // Example listener
+    client.onMessage((message) => {
+      if (message.body === 'hi' && message.isGroupMsg === false) {
+        client.sendText(message.from, 'Hello! How can I help you today?');
+      }
+    });
+  })
+  .catch((error) => {
+    console.error('[whatsapp-bot] Error initializing client:', error);
   });
 
-// Bot logic
-function start(client) {
-  client.onMessage((message) => {
-    console.log('Message:', message.body);
+// QR endpoint (optional but helpful during development)
+app.get('/qr', (req, res) => {
+  if (!client) {
+    return res.status(503).send('Client not initialized yet. Please wait...');
+  }
 
-    // Handle button responses
-    if (message.body === 'Option 1') {
-      client.sendText(message.from, 'You selected Option 1');
-    } else if (message.body === 'Option 2') {
-      client.sendText(message.from, 'You selected Option 2');
-    } else {
-      // Send interactive buttons
-      client.sendButtons(
-        message.from,
-        'Please choose one of the following options:',
-        [
-          { buttonText: { displayText: 'Option 1' } },
-          { buttonText: { displayText: 'Option 2' } }
-        ],
-        'Click a button below'
-      );
-    }
+  client.getWAVersion().then((version) => {
+    res.send(`Client is running WA Version: ${version}`);
+  }).catch(err => {
+    res.status(500).send(`Error fetching WA version: ${err}`);
   });
+});
 
-  // Handle QR Code logs
-  client.onStateChange((state) => {
-    console.log('State:', state);
-  });
-}
+// Home route
+app.get('/', (req, res) => {
+  res.send('WhatsApp Bot is running!');
+});
+
+// Use correct port for Render or fallback for local
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log(`==> Server is running on port ${PORT}`);
+});
