@@ -1,6 +1,5 @@
 const venom = require('venom-bot');
 const express = require('express');
-
 const app = express();
 const port = process.env.PORT || 10000;
 
@@ -11,24 +10,24 @@ app.listen(port, '0.0.0.0', () => {
 venom.create().then((client) => {
     console.log('Bot created, waiting for QR Code...');
     
+    // Handle the QR code generation and log it
     client.onQrCode((qrCode) => {
         console.log('QR Code:', qrCode); // This logs the QR code string
     });
 
+    // Handle state change events (e.g., connected, disconnected)
     client.onStateChange((state) => {
         console.log(`State changed: ${state}`);
-    });
-
-    client.onMessage((message) => {
-        console.log("Message received:", message.body);
-        if (message.body === '1') {
-            client.sendText(message.from, 'Option 1 selected!');
-        } else if (message.body === '2') {
-            client.sendText(message.from, 'Option 2 selected!');
-        } else {
-            client.sendText(message.from, 'Please select a valid option: 1 or 2.');
+        if (state === 'DISCONNECTED') {
+            console.log('Bot has disconnected. Reconnecting...');
+            // Reconnect logic here if needed
         }
     });
-}).catch(err => {
-    console.error("Error creating venom bot:", err);
-});
+
+    // Handle incoming messages
+    client.onMessage((message) => {
+        console.log("Message received:", message.body);
+
+        // Send buttons to user
+        if (message.body === '1') {
+            client.sendText(message.from, 'Option 1 selected!');
