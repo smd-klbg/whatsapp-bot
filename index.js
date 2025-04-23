@@ -1,54 +1,53 @@
 const express = require('express');
 const venom = require('venom-bot');
-
 const app = express();
-let client = null;
 
-// Create the WhatsApp session
+let client = null;
+let qrData = null;
+
+// Initialize WhatsApp session
 venom
-  .create({
-    session: 'whatsapp-bot', // session name
-    multidevice: true,       // supports multi-device
-    headless: true,          // set to false if you want to see browser
-    useChrome: true,
-    debug: false
-  })
+  .create(
+    'whatsapp-bot',
+    (base64Qr, asciiQR, attempts, urlCode) => {
+      console.log('Scan the QR below in terminal:\n');
+      console.log(asciiQR);
+      qrData = base64Qr;
+    },
+    (statusSession, session) => {
+      console.log(`[whatsapp-bot] Status: ${statusSession}`);
+    },
+    {
+      multidevice: true,
+      headless: true,
+      useChrome: true,
+      debug: false
+    }
+  )
   .then((whatsappClient) => {
     client = whatsappClient;
-
-    console.log('[whatsapp-bot] Client initialized');
-
-    // Example listener
-    client.onMessage((message) => {
-      if (message.body === 'hi' && message.isGroupMsg === false) {
-        client.sendText(message.from, 'Hello! How can I help you today?');
-      }
-    });
+    console.log('[whatsapp-bot] Client is ready.');
   })
-  .catch((error) => {
-    console.error('[whatsapp-bot] Error initializing client:', error);
+  .catch((err) => {
+    console.error('[whatsapp-bot] Initialization failed:', err);
   });
 
-// QR endpoint (optional but helpful during development)
-app.get('/qr', (req, res) => {
-  if (!client) {
-    return res.status(503).send('Client not initialized yet. Please wait...');
-  }
-
-  client.getWAVersion().then((version) => {
-    res.send(`Client is running WA Version: ${version}`);
-  }).catch(err => {
-    res.status(500).send(`Error fetching WA version: ${err}`);
-  });
-});
-
-// Home route
 app.get('/', (req, res) => {
-  res.send('WhatsApp Bot is running!');
+  res.send('WhatsApp Bot is running.');
 });
 
-// Use correct port for Render or fallback for local
+app.get('/qr', (req, res) => {
+  if (qrData) {
+    res.send(`
+      <h2>Scan this QR Code with your WhatsApp</h2>
+      <img src="${qrData}" />
+    `);
+  } else {
+    res.send('Client not initialized yet. Please wait or check logs.');
+  }
+});
+
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`==> Server is running on port ${PORT}`);
+  console.log(`==> Server running on port ${PORT}`);
 });
